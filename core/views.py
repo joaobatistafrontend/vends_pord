@@ -3,16 +3,24 @@ from django.shortcuts import redirect
 from django.views.generic import TemplateView
 from .models import *
 from datetime import date
+from django.views.generic import DetailView
+from .models import Venda
 
 class ProdutosView(TemplateView):
     template_name = 'produtos.html'
 
     def get(self, request):
         produtos = Produto.objects.all()
-        carrinho = Carrinho.objects.all()  # Recupera os itens do carrinho
-        venda = Venda.objects.all()
+        carrinho = Carrinho.objects.all()
+        vendas = Venda.objects.all()
+        tipos_venda = Tipo_venda.objects.all()  # Recupera todos os tipos de venda
 
-        return render(request, self.template_name, {'produtos': produtos, 'carrinho': carrinho, 'vendas':venda})
+        return render(request, self.template_name, {
+            'produtos': produtos,
+            'carrinho': carrinho,
+            'vendas': vendas,
+            'tipos_venda': tipos_venda  # Passa os tipos de venda para o template
+        })
 
     def post(self, request):
         produto_id = request.POST.get('produto_id')
@@ -24,22 +32,23 @@ class ProdutosView(TemplateView):
             item_carrinho.qtd += 1
             item_carrinho.save()
 
-        return redirect('produtos')  # Redireciona de volta para a lista de produtos
-
-
+        return redirect('produtos')
 class FinalizarVendaView(TemplateView):
     template_name = 'finalizar_venda.html'
 
     def post(self, request):
-        # Cria uma nova venda única
-        nova_venda = Venda.objects.create()
+        tipo_venda_id = request.POST.get('tipo_venda')  # Captura o tipo de venda selecionado
+        tipo_venda = Tipo_venda.objects.get(id=tipo_venda_id)
+
+        # Cria uma nova venda com o tipo de venda selecionado
+        nova_venda = Venda.objects.create(tipo_venda=tipo_venda)
 
         # Obtém todos os itens do carrinho
         carrinho = Carrinho.objects.all()
         # Associa todos os itens do carrinho à nova venda
         for item in carrinho:
             VendaDoProduto.objects.create(
-                venda=nova_venda,  # Associa os produtos à venda criada
+                venda=nova_venda,
                 produto=item.produto,
                 qtd=item.qtd,
                 total=item.produto.valor.valor * item.qtd
@@ -48,12 +57,7 @@ class FinalizarVendaView(TemplateView):
         # Limpa o carrinho após a venda
         carrinho.delete()
 
-        # Redireciona para a página de detalhes da venda ou de produtos
         return redirect('venda_detalhes', pk=nova_venda.numero_venda)
-    
-
-from django.views.generic import DetailView
-from .models import Venda
 
 class VendaDetailView(DetailView):
     model = Venda

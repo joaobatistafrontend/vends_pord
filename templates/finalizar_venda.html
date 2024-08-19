@@ -1,0 +1,12 @@
+<form method="post">
+    {% csrf_token %}
+    <label for="tipo_venda">Escolha o tipo de venda:</label>
+    <select name="tipo_venda" id="tipo_venda">
+        {% for tipo in tipos_venda %}
+            <option value="{{ tipo.id }}">{{ tipo.tipo }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- Botão para finalizar a venda -->
+    <button type="submit">Finalizar Venda</button>
+</form>

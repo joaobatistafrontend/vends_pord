@@ -20,11 +20,16 @@
     </form>
 
     <h2>Carrinho</h2>
-    <ul>
-        {% for item in carrinho %}
-            <li>{{ item.produto.nome_produto }} - {{ item.qtd }} unidades</li>
-        {% endfor %}
-    </ul>
+    <form method="post" action="{% url 'finalizar_venda' %}">
+        {% csrf_token %}
+        <label for="tipo_venda">Escolha o tipo de venda:</label>
+        <select name="tipo_venda" id="tipo_venda">
+            {% for tipo in tipos_venda %}
+                <option value="{{ tipo.id }}">{{ tipo.tipo }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Finalizar Venda</button>
+    </form>
 
     <form method="post" action="{% url 'finalizar_venda' %}">
         {% csrf_token %}
